@@ -1,175 +1,210 @@
-import { useState } from 'react'
-import rooms from '../../services/roomData'
+import {
+  useEffect,
+  useState,
+} from 'react'
+
+import {
+  getRooms,
+} from '../../services/roomService'
+
 import RoomDetails from '../rooms/RoomDetails'
 
-function FeaturedRooms() {
 
-  const [selectedRoom, setSelectedRoom] = useState(null)
+function FeaturedRooms() {
+  const [rooms, setRooms] =
+    useState([])
+
+  const [selectedRoom, setSelectedRoom] =
+    useState(null)
+
+  const [loading, setLoading] =
+    useState(true)
+
+  const [error, setError] =
+    useState('')
+
+
+  useEffect(() => {
+    const loadRooms = async () => {
+      try {
+        const data =
+          await getRooms()
+
+        setRooms(data.rooms)
+      } catch (error) {
+        setError(error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadRooms()
+  }, [])
+
 
   return (
-    <>
-      <section
-        id="rooms"
-        className="rooms-section-user"
-      >
+    <section
+      className="featured-rooms-user"
+      id="rooms"
+    >
+      <div className="container">
 
-        <div className="container">
+        <div className="section-heading-user text-center">
+          <span>ACCOMMODATION</span>
 
-          {/* SECTION HEADER */}
-          <div className="section-heading-user text-center">
+          <h2>
+            Featured Rooms & Suites
+          </h2>
 
-            <span>OUR ACCOMMODATION</span>
+          <p>
+            Discover refined spaces
+            designed for comfort,
+            privacy and exceptional
+            hospitality.
+          </p>
+        </div>
 
-            <h2>
-              Rooms Designed
-              <br />
-              Around Your Comfort
-            </h2>
 
-            <p>
-              Discover elegant spaces created for relaxation,
-              privacy and exceptional stays.
+        {loading && (
+          <div className="text-center py-5">
+            <div
+              className="spinner-border"
+              role="status"
+            >
+              <span className="visually-hidden">
+                Loading...
+              </span>
+            </div>
+
+            <p className="mt-3">
+              Loading rooms...
             </p>
-
           </div>
+        )}
 
-          {/* ROOM CARDS */}
-          <div className="row g-4">
 
-            {rooms.map((room) => (
+        {error && (
+          <div
+            className="alert alert-danger"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
 
-              <div
-                className="col-md-6 col-xl-4"
-                key={room.id}
-              >
 
-                <article className="room-card-user">
+        {!loading &&
+          !error && (
+            <div className="row g-4">
 
-                  {/* IMAGE */}
-                  <div className="room-image-wrapper-user">
+              {rooms.map((room) => (
 
-                    <img
-                      src={room.image}
-                      alt={room.name}
-                      className="room-image-user"
-                    />
+                <div
+                  className="col-lg-4"
+                  key={room._id}
+                >
 
-                    <span className="room-type-user">
-                      {room.type}
-                    </span>
+                  <article className="room-card-user h-100">
 
-                    <button
-                      className="room-favorite-user"
-                      type="button"
-                      aria-label={`Save ${room.name}`}
-                    >
-                      <i className="bi bi-heart"></i>
-                    </button>
+                    <div className="room-image-user">
 
-                  </div>
+                      <img
+                        src={room.image}
+                        alt={room.name}
+                      />
 
-                  {/* CONTENT */}
-                  <div className="room-content-user">
+                      <span className="room-type-user">
+                        {room.type}
+                      </span>
 
-                    <div className="d-flex justify-content-between align-items-start gap-3">
+                    </div>
 
-                      <div>
 
-                        <h3>{room.name}</h3>
+                    <div className="room-card-body-user">
 
-                        <div className="room-rating-user">
-                          <i className="bi bi-star-fill"></i>
-                          <span>4.9</span>
-                          <small>Exceptional</small>
+                      <div className="room-card-title-user">
+
+                        <div>
+                          <h3>
+                            {room.name}
+                          </h3>
+
+                          <small>
+                            Room {room.roomNumber}
+                          </small>
+                        </div>
+
+                        <div className="room-price-user">
+                          <strong>
+                            PKR{' '}
+                            {room.price.toLocaleString()}
+                          </strong>
+
+                          <span>
+                            / night
+                          </span>
                         </div>
 
                       </div>
 
-                      <div className="room-price-user">
 
-                        <strong>
-                          PKR {room.price.toLocaleString()}
-                        </strong>
+                      <p>
+                        {room.description}
+                      </p>
 
-                        <small>
-                          / night
-                        </small>
+
+                      <div className="room-features-user">
+
+                        <span>
+                          <i className="bi bi-people"></i>
+                          {room.capacity}{' '}
+                          Guests
+                        </span>
+
+                        <span>
+                          <i className="bi bi-moon"></i>
+                          {room.beds}
+                        </span>
 
                       </div>
 
-                    </div>
 
-                    <p className="room-description-user">
-                      {room.description}
-                    </p>
-
-                    {/* ROOM INFO */}
-                    <div className="room-info-user">
-
-                      <span>
-                        <i className="bi bi-people"></i>
-                        {room.guests} Guests
-                      </span>
-
-                      <span>
-                        <i className="bi bi-house"></i>
-                        {room.size}
-                      </span>
-
-                      <span>
-                        <i className="bi bi-moon-stars"></i>
-                        {room.beds}
-                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-outline-luxury w-100"
+                        onClick={() =>
+                          setSelectedRoom(
+                            room
+                          )
+                        }
+                      >
+                        View Details
+                      </button>
 
                     </div>
 
-                    {/* AMENITIES */}
-                    <div className="room-amenities-user">
+                  </article>
 
-                      {room.amenities
-                        .slice(0, 3)
-                        .map((amenity) => (
+                </div>
 
-                          <span key={amenity}>
-                            <i className="bi bi-check2"></i>
-                            {amenity}
-                          </span>
+              ))}
 
-                        ))}
+            </div>
+          )}
 
-                    </div>
+      </div>
 
-                    {/* ACTION */}
-                    <button
-                      type="button"
-                      className="btn btn-outline-luxury w-100 mt-4"
-                      onClick={() => setSelectedRoom(room)}
-                    >
-                      View Room Details
-                      <i className="bi bi-arrow-right ms-2"></i>
-                    </button>
 
-                  </div>
+      {selectedRoom && (
+        <RoomDetails
+          room={selectedRoom}
+          onClose={() =>
+            setSelectedRoom(null)
+          }
+        />
+      )}
 
-                </article>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* ROOM DETAILS */}
-      <RoomDetails
-        room={selectedRoom}
-        onClose={() => setSelectedRoom(null)}
-      />
-
-    </>
+    </section>
   )
 }
 

@@ -1,282 +1,320 @@
+import {
+  useMemo,
+  useState,
+} from 'react'
+
+import {
+  useNavigate,
+} from 'react-router-dom'
+
+import {
+  useAuth,
+} from '../../context/AuthContext'
+
+import {
+  createReservation,
+} from '../../services/reservationService'
+
+
 function BookingForm({
   room,
-  checkIn,
-  checkOut,
-  guests,
+  bookingData,
   onClose,
 }) {
-  if (!room) return null
+  const navigate =
+    useNavigate()
 
-  const calculateNights = () => {
-    if (!checkIn || !checkOut) return 1
+  const {
+    token,
+    isAuthenticated,
+  } = useAuth()
 
-    const start = new Date(checkIn)
-    const end = new Date(checkOut)
+  const [specialRequests, setSpecialRequests] =
+    useState('')
 
-    const difference = end - start
-    const nights = Math.ceil(
-      difference / (1000 * 60 * 60 * 24)
+  const [loading, setLoading] =
+    useState(false)
+
+  const [error, setError] =
+    useState('')
+
+  const [success, setSuccess] =
+    useState('')
+
+
+  const nights = useMemo(() => {
+    if (
+      !bookingData?.checkIn ||
+      !bookingData?.checkOut
+    ) {
+      return 0
+    }
+
+    const start =
+      new Date(
+        bookingData.checkIn
+      )
+
+    const end =
+      new Date(
+        bookingData.checkOut
+      )
+
+    const difference =
+      end.getTime() -
+      start.getTime()
+
+    return Math.max(
+      0,
+      Math.ceil(
+        difference /
+          (1000 * 60 * 60 * 24)
+      )
     )
+  }, [bookingData])
 
-    return nights > 0 ? nights : 1
-  }
 
-  const nights = calculateNights()
-  const total = room.price * nights
+  const estimatedTotal =
+    nights * room.price
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
 
-    alert(
-      `Booking request submitted for ${room.name}.`
-    )
-  }
+  const handleReservation =
+    async (event) => {
+      event.preventDefault()
+
+      setError('')
+      setSuccess('')
+
+
+      if (!isAuthenticated) {
+        navigate('/login')
+        return
+      }
+
+
+      if (
+        !bookingData?.checkIn ||
+        !bookingData?.checkOut
+      ) {
+        setError(
+          'Please select your booking dates first.'
+        )
+        return
+      }
+
+
+      try {
+        setLoading(true)
+
+        const data =
+          await createReservation({
+            token,
+
+            reservationData: {
+              roomId: room._id,
+
+              checkIn:
+                bookingData.checkIn,
+
+              checkOut:
+                bookingData.checkOut,
+
+              guests:
+                Number(
+                  bookingData.guests
+                ),
+
+              specialRequests,
+            },
+          })
+
+
+        setSuccess(
+          data.message ||
+            'Reservation created successfully.'
+        )
+
+
+        setTimeout(() => {
+          onClose?.()
+
+          navigate(
+            '/guest/reservations'
+          )
+        }, 1200)
+
+      } catch (error) {
+        setError(error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
 
   return (
-    <div className="booking-form-overlay-user">
+    <div className="booking-form-user">
 
-      <div className="booking-form-modal-user">
+      <div className="booking-summary-user">
 
-        {/* CLOSE */}
-        <button
-          type="button"
-          className="booking-form-close-user"
-          onClick={onClose}
-          aria-label="Close booking form"
-        >
-          <i className="bi bi-x-lg"></i>
-        </button>
+        <div>
+          <span>
+            SELECTED ROOM
+          </span>
 
-        <div className="row g-0">
+          <h3>
+            {room.name}
+          </h3>
 
-          {/* LEFT - ROOM SUMMARY */}
-          <div className="col-lg-5">
+          <p>
+            Room {room.roomNumber}
+          </p>
+        </div>
 
-            <div className="booking-summary-user">
+        <strong>
+          PKR{' '}
+          {room.price.toLocaleString()}
+          <small>
+            {' '}
+            / night
+          </small>
+        </strong>
 
-              <div className="booking-summary-image-user">
+      </div>
 
-                <img
-                  src={room.image}
-                  alt={room.name}
-                />
 
-              </div>
+      {bookingData?.checkIn &&
+        bookingData?.checkOut && (
 
-              <span className="booking-summary-label-user">
-                YOUR SELECTED ROOM
+          <div className="booking-details-grid-user">
+
+            <div>
+              <span>
+                Check In
               </span>
 
-              <h2>{room.name}</h2>
+              <strong>
+                {bookingData.checkIn}
+              </strong>
+            </div>
 
-              <div className="booking-summary-rating-user">
-                <i className="bi bi-star-fill"></i>
-                <strong>4.9</strong>
-                <span>Exceptional</span>
-              </div>
+            <div>
+              <span>
+                Check Out
+              </span>
 
-              <div className="booking-summary-details-user">
+              <strong>
+                {bookingData.checkOut}
+              </strong>
+            </div>
 
-                <div>
-                  <i className="bi bi-calendar-check"></i>
+            <div>
+              <span>
+                Guests
+              </span>
 
-                  <span>
-                    <small>Check In</small>
-                    {checkIn}
-                  </span>
-                </div>
+              <strong>
+                {bookingData.guests}
+              </strong>
+            </div>
 
-                <div>
-                  <i className="bi bi-calendar-x"></i>
+            <div>
+              <span>
+                Nights
+              </span>
 
-                  <span>
-                    <small>Check Out</small>
-                    {checkOut}
-                  </span>
-                </div>
-
-                <div>
-                  <i className="bi bi-people"></i>
-
-                  <span>
-                    <small>Guests</small>
-                    {guests}
-                  </span>
-                </div>
-
-              </div>
-
-              {/* PRICE */}
-              <div className="booking-total-user">
-
-                <div>
-                  <span>
-                    PKR {room.price.toLocaleString()} × {nights}{' '}
-                    {nights === 1 ? 'night' : 'nights'}
-                  </span>
-
-                  <strong>
-                    PKR {total.toLocaleString()}
-                  </strong>
-                </div>
-
-                <small>
-                  Taxes and additional services will be
-                  calculated during the final billing process.
-                </small>
-
-              </div>
-
+              <strong>
+                {nights}
+              </strong>
             </div>
 
           </div>
 
-          {/* RIGHT - FORM */}
-          <div className="col-lg-7">
+        )}
 
-            <div className="booking-form-content-user">
 
-              <span className="booking-form-label-user">
-                RESERVATION DETAILS
-              </span>
+      <form
+        onSubmit={
+          handleReservation
+        }
+      >
 
-              <h2>
-                Complete Your Booking
-              </h2>
+        <div className="mb-3">
 
-              <p>
-                Enter your details below to request
-                your reservation.
-              </p>
+          <label className="form-label">
+            Special Requests
+          </label>
 
-              <form onSubmit={handleSubmit}>
-
-                <div className="row g-3">
-
-                  {/* NAME */}
-                  <div className="col-md-6">
-
-                    <label htmlFor="guestName">
-                      Full Name
-                    </label>
-
-                    <input
-                      id="guestName"
-                      type="text"
-                      className="form-control"
-                      placeholder="Enter your name"
-                      required
-                    />
-
-                  </div>
-
-                  {/* EMAIL */}
-                  <div className="col-md-6">
-
-                    <label htmlFor="guestEmail">
-                      Email Address
-                    </label>
-
-                    <input
-                      id="guestEmail"
-                      type="email"
-                      className="form-control"
-                      placeholder="example@email.com"
-                      required
-                    />
-
-                  </div>
-
-                  {/* PHONE */}
-                  <div className="col-md-6">
-
-                    <label htmlFor="guestPhone">
-                      Phone Number
-                    </label>
-
-                    <input
-                      id="guestPhone"
-                      type="tel"
-                      className="form-control"
-                      placeholder="+92 300 1234567"
-                      required
-                    />
-
-                  </div>
-
-                  {/* GUESTS */}
-                  <div className="col-md-6">
-
-                    <label htmlFor="bookingGuests">
-                      Number of Guests
-                    </label>
-
-                    <select
-                      id="bookingGuests"
-                      className="form-select"
-                      defaultValue={guests}
-                      required
-                    >
-                      <option value="1">
-                        1 Guest
-                      </option>
-
-                      <option value="2">
-                        2 Guests
-                      </option>
-
-                      <option value="3">
-                        3 Guests
-                      </option>
-
-                      <option value="4">
-                        4 Guests
-                      </option>
-                    </select>
-
-                  </div>
-
-                  {/* SPECIAL REQUEST */}
-                  <div className="col-12">
-
-                    <label htmlFor="specialRequest">
-                      Special Request
-                    </label>
-
-                    <textarea
-                      id="specialRequest"
-                      className="form-control"
-                      rows="4"
-                      placeholder="Any special requirements?"
-                    ></textarea>
-
-                  </div>
-
-                </div>
-
-                {/* CONFIRM */}
-                <button
-                  type="submit"
-                  className="btn btn-luxury w-100 mt-4"
-                >
-                  Confirm Booking Request
-                  <i className="bi bi-check2-circle ms-2"></i>
-                </button>
-
-                <p className="booking-secure-note-user">
-                  <i className="bi bi-shield-check"></i>
-                  Your booking information is handled securely.
-                </p>
-
-              </form>
-
-            </div>
-
-          </div>
+          <textarea
+            className="form-control"
+            rows="3"
+            maxLength="500"
+            placeholder="Airport transfer, additional pillows, special requirements..."
+            value={
+              specialRequests
+            }
+            onChange={(event) =>
+              setSpecialRequests(
+                event.target.value
+              )
+            }
+          ></textarea>
 
         </div>
 
-      </div>
+
+        {nights > 0 && (
+          <div className="booking-total-user">
+
+            <span>
+              Estimated Total
+            </span>
+
+            <strong>
+              PKR{' '}
+              {estimatedTotal.toLocaleString()}
+            </strong>
+
+          </div>
+        )}
+
+
+        {error && (
+          <div className="auth-alert-user mb-3">
+            <i className="bi bi-exclamation-circle"></i>
+            <span>{error}</span>
+          </div>
+        )}
+
+
+        {success && (
+          <div className="auth-success-user mb-3">
+            <i className="bi bi-check-circle"></i>
+            <span>{success}</span>
+          </div>
+        )}
+
+
+        <button
+          type="submit"
+          className="btn btn-luxury w-100"
+          disabled={loading}
+        >
+
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2"></span>
+              Confirming...
+            </>
+          ) : (
+            <>
+              <i className="bi bi-calendar-check me-2"></i>
+              Confirm Reservation
+            </>
+          )}
+
+        </button>
+
+      </form>
 
     </div>
   )
