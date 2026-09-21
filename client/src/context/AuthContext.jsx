@@ -7,179 +7,169 @@ import {
 
 import {
   getCurrentUser,
+  loginUser,
+  registerUser,
 } from '../services/authService'
-
 
 const AuthContext =
   createContext(null)
 
-
 export function AuthProvider({
   children,
 }) {
-
   const [user, setUser] =
     useState(null)
 
   const [token, setToken] =
-    useState(null)
+    useState(
+      localStorage.getItem(
+        'luxurystay_token'
+      ) ||
+        sessionStorage.getItem(
+          'luxurystay_token'
+        ) ||
+        null
+    )
 
-  const [authLoading, setAuthLoading] =
+  const [loading, setLoading] =
     useState(true)
 
-
   useEffect(() => {
-
-    const initializeAuth =
-      async () => {
-
-        const savedToken =
-          localStorage.getItem(
-            'luxuryStayToken'
-          ) ||
-          sessionStorage.getItem(
-            'luxuryStayToken'
-          )
-
-
-        if (!savedToken) {
-          setAuthLoading(false)
-          return
-        }
-
-
-        try {
-
-          const data =
-            await getCurrentUser(
-              savedToken
-            )
-
-          setToken(savedToken)
-          setUser(data.user)
-
-        } catch (error) {
-
-          localStorage.removeItem(
-            'luxuryStayToken'
-          )
-
-          localStorage.removeItem(
-            'luxuryStayUser'
-          )
-
-          sessionStorage.removeItem(
-            'luxuryStayToken'
-          )
-
-          sessionStorage.removeItem(
-            'luxuryStayUser'
-          )
-
-          setToken(null)
-          setUser(null)
-
-        } finally {
-
-          setAuthLoading(false)
-
-        }
+    const verifyUser = async () => {
+      if (!token) {
+        setLoading(false)
+        return
       }
 
+      try {
+        const data =
+          await getCurrentUser(token)
 
-    initializeAuth()
+        setUser(
+          data.user || data
+        )
+      } catch (error) {
+        console.error(
+          'Auth verification:',
+          error
+        )
 
-  }, [])
+        localStorage.removeItem(
+          'luxurystay_token'
+        )
 
+        sessionStorage.removeItem(
+          'luxurystay_token'
+        )
 
-  const login = (
-    userData,
-    authToken,
+        setToken(null)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    verifyUser()
+  }, [token])
+
+  const login = async (
+    credentials,
     remember = false
   ) => {
+    const data =
+      await loginUser(credentials)
 
-    // Remove previous auth storage
-    localStorage.removeItem(
-      'luxuryStayToken'
-    )
+    const receivedToken =
+      data.token
+
+    const receivedUser =
+      data.user
+
+    if (
+      !receivedToken ||
+      !receivedUser
+    ) {
+      throw new Error(
+        'Invalid login response from server.'
+      )
+    }
 
     localStorage.removeItem(
-      'luxuryStayUser'
+      'luxurystay_token'
     )
 
     sessionStorage.removeItem(
-      'luxuryStayToken'
+      'luxurystay_token'
     )
 
-    sessionStorage.removeItem(
-      'luxuryStayUser'
-    )
+    if (remember) {
+      localStorage.setItem(
+        'luxurystay_token',
+        receivedToken
+      )
+    } else {
+      sessionStorage.setItem(
+        'luxurystay_token',
+        receivedToken
+      )
+    }
 
+    setToken(receivedToken)
+    setUser(receivedUser)
 
-    const storage =
-      remember
-        ? localStorage
-        : sessionStorage
-
-
-    storage.setItem(
-      'luxuryStayToken',
-      authToken
-    )
-
-    storage.setItem(
-      'luxuryStayUser',
-      JSON.stringify(userData)
-    )
-
-
-    setToken(authToken)
-    setUser(userData)
+    return data
   }
 
+  const register = async (
+    userData
+  ) => {
+    return await registerUser(
+      userData
+    )
+  }
 
   const logout = () => {
-
     localStorage.removeItem(
-      'luxuryStayToken'
-    )
-
-    localStorage.removeItem(
-      'luxuryStayUser'
+      'luxurystay_token'
     )
 
     sessionStorage.removeItem(
-      'luxuryStayToken'
-    )
-
-    sessionStorage.removeItem(
-      'luxuryStayUser'
+      'luxurystay_token'
     )
 
     setToken(null)
     setUser(null)
   }
 
+  const value = {
+    user,
+    token,
+    loading,
+    isAuthenticated:
+      Boolean(user && token),
+    login,
+    register,
+    logout,
+  }
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        token,
-        authLoading,
-        isAuthenticated: Boolean(
-          user && token
-        ),
-        login,
-        logout,
-      }}
+      value={value}
     >
       {children}
     </AuthContext.Provider>
   )
 }
 
-
 export function useAuth() {
-  return useContext(AuthContext)
+  const context =
+    useContext(AuthContext)
+
+  if (!context) {
+    throw new Error(
+      'useAuth must be used inside AuthProvider.'
+    )
+  }
+
+  return context
 }

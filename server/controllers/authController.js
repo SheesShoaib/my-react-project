@@ -1,9 +1,13 @@
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
+const bcrypt =
+  require('bcryptjs')
 
-const User = require('../models/User')
+const jwt =
+  require('jsonwebtoken')
 
-const generateToken = (userId) => {
+const User =
+  require('../models/User')
+
+const createToken = (userId) => {
   return jwt.sign(
     {
       userId,
@@ -15,12 +19,10 @@ const generateToken = (userId) => {
   )
 }
 
-
-// ==========================================
-// REGISTER USER
-// ==========================================
-
-const registerUser = async (req, res) => {
+const register = async (
+  req,
+  res
+) => {
   try {
     const {
       firstName,
@@ -48,16 +50,19 @@ const registerUser = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          'Password must contain at least 6 characters.',
+          'Password must be at least 6 characters.',
       })
     }
 
     const normalizedEmail =
-      email.trim().toLowerCase()
+      email
+        .trim()
+        .toLowerCase()
 
-    const existingUser = await User.findOne({
-      email: normalizedEmail,
-    })
+    const existingUser =
+      await User.findOne({
+        email: normalizedEmail,
+      })
 
     if (existingUser) {
       return res.status(409).json({
@@ -67,39 +72,40 @@ const registerUser = async (req, res) => {
       })
     }
 
-    const salt = await bcrypt.genSalt(10)
-
     const hashedPassword =
       await bcrypt.hash(
         password,
-        salt
+        12
       )
 
-    const user = await User.create({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: normalizedEmail,
-      phone: phone.trim(),
-      password: hashedPassword,
-      role: 'guest',
-    })
+    const user =
+      await User.create({
+        firstName:
+          firstName.trim(),
+        lastName:
+          lastName.trim(),
+        email: normalizedEmail,
+        phone: phone.trim(),
+        password:
+          hashedPassword,
+        role: 'guest',
+      })
 
     return res.status(201).json({
       success: true,
-
       message:
-        'Guest account created successfully.',
-
+        'Account created successfully.',
       user: {
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName:
+          user.firstName,
+        lastName:
+          user.lastName,
         email: user.email,
         phone: user.phone,
         role: user.role,
       },
     })
-
   } catch (error) {
     console.error(
       'Register Error:',
@@ -109,17 +115,15 @@ const registerUser = async (req, res) => {
     return res.status(500).json({
       success: false,
       message:
-        'Server error while creating account.',
+        'Unable to create account.',
     })
   }
 }
 
-
-// ==========================================
-// LOGIN USER
-// ==========================================
-
-const loginUser = async (req, res) => {
+const login = async (
+  req,
+  res
+) => {
   try {
     const {
       email,
@@ -130,18 +134,17 @@ const loginUser = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          'Please enter your email and password.',
+          'Email and password are required.',
       })
     }
 
-    const normalizedEmail =
-      email.trim().toLowerCase()
-
-    // Password has select:false in User model,
-    // so explicitly request it here.
-    const user = await User.findOne({
-      email: normalizedEmail,
-    }).select('+password')
+    const user =
+      await User.findOne({
+        email:
+          email
+            .trim()
+            .toLowerCase(),
+      }).select('+password')
 
     if (!user) {
       return res.status(401).json({
@@ -173,28 +176,25 @@ const loginUser = async (req, res) => {
       })
     }
 
-    const token = generateToken(
-      user._id
-    )
+    const token =
+      createToken(user._id)
 
     return res.status(200).json({
       success: true,
-
       message:
         'Login successful.',
-
       token,
-
       user: {
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName:
+          user.firstName,
+        lastName:
+          user.lastName,
         email: user.email,
         phone: user.phone,
         role: user.role,
       },
     })
-
   } catch (error) {
     console.error(
       'Login Error:',
@@ -204,51 +204,31 @@ const loginUser = async (req, res) => {
     return res.status(500).json({
       success: false,
       message:
-        'Server error while logging in.',
+        'Unable to login.',
     })
   }
 }
 
-const getCurrentUser = async (
+const getMe = async (
   req,
   res
 ) => {
   try {
-
-    const user = req.user
-
     return res.status(200).json({
       success: true,
-
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        isActive: user.isActive,
-      },
+      user: req.user,
     })
-
   } catch (error) {
-
-    console.error(
-      'Get Current User Error:',
-      error
-    )
-
     return res.status(500).json({
       success: false,
       message:
-        'Unable to retrieve user information.',
+        'Unable to load profile.',
     })
   }
 }
 
-
 module.exports = {
-  registerUser,
-  loginUser,
-  getCurrentUser,
+  register,
+  login,
+  getMe,
 }

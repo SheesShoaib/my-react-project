@@ -1,29 +1,38 @@
 import {
   Navigate,
   Outlet,
+  useLocation,
 } from 'react-router-dom'
 
 import {
   useAuth,
 } from '../context/AuthContext'
 
-
 function ProtectedRoute({
-  allowedRoles,
+  allowedRoles = [],
 }) {
-
   const {
     user,
+    token,
+    loading,
     isAuthenticated,
-    authLoading,
   } = useAuth()
 
+  const location =
+    useLocation()
 
-  if (authLoading) {
+  /*
+    Important:
+    Refresh ke waqt AuthContext
+    /api/auth/me verify kar raha hota hai.
 
+    Is waqt login page par redirect
+    nahi karna.
+  */
+
+  if (loading) {
     return (
-      <div className="auth-page-loader-user">
-
+      <div className="auth-route-loading-user">
         <div
           className="spinner-border"
           role="status"
@@ -34,32 +43,35 @@ function ProtectedRoute({
         </div>
 
         <p>
-          Verifying your session...
+          Restoring your session...
         </p>
-
       </div>
     )
   }
 
-
-  if (!isAuthenticated) {
-
+  if (
+    !token ||
+    !isAuthenticated ||
+    !user
+  ) {
     return (
       <Navigate
         to="/login"
         replace
+        state={{
+          from:
+            location.pathname,
+        }}
       />
     )
   }
 
-
   if (
-    allowedRoles &&
+    allowedRoles.length > 0 &&
     !allowedRoles.includes(
       user.role
     )
   ) {
-
     return (
       <Navigate
         to="/unauthorized"
@@ -67,7 +79,6 @@ function ProtectedRoute({
       />
     )
   }
-
 
   return <Outlet />
 }

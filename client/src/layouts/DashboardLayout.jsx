@@ -1,7 +1,10 @@
-import { useState } from 'react'
 import {
-  Outlet,
+  useState,
+} from 'react'
+
+import {
   NavLink,
+  Outlet,
   useNavigate,
 } from 'react-router-dom'
 
@@ -10,103 +13,235 @@ import {
 } from '../context/AuthContext'
 
 function DashboardLayout() {
-  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false)
 
   const {
     user,
     logout,
   } = useAuth()
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false)
+  const navigate =
+    useNavigate()
+
+  const role =
+    user?.role || 'guest'
+
+  const navigation = {
+    admin: [
+      {
+        label: 'Overview',
+        path: '/admin/dashboard',
+        icon: 'bi-grid',
+      },
+      {
+        label: 'Staff Management',
+        path: '/admin/staff',
+        icon: 'bi-person-badge',
+      },
+      {
+        label: 'Guests',
+        path: '/admin/guests',
+        icon: 'bi-people',
+      },
+      {
+        label: 'Rooms',
+        path: '/admin/rooms',
+        icon: 'bi-door-open',
+      },
+      {
+        label: 'Reservations',
+        path: '/admin/reservations',
+        icon: 'bi-calendar-check',
+      },
+      {
+        label: 'Reports',
+        path: '/admin/reports',
+        icon: 'bi-bar-chart',
+      },
+      {
+        label: 'Settings',
+        path: '/admin/settings',
+        icon: 'bi-gear',
+      },
+    ],
+
+    manager: [
+      {
+        label: 'Overview',
+        path: '/manager/dashboard',
+        icon: 'bi-grid',
+      },
+      {
+        label: 'Rooms',
+        path: '/manager/rooms',
+        icon: 'bi-door-open',
+      },
+      {
+        label: 'Reservations',
+        path: '/manager/reservations',
+        icon: 'bi-calendar-check',
+      },
+      {
+        label: 'Reports',
+        path: '/manager/reports',
+        icon: 'bi-bar-chart',
+      },
+    ],
+
+    receptionist: [
+      {
+        label: 'Overview',
+        path:
+          '/receptionist/dashboard',
+        icon: 'bi-grid',
+      },
+      {
+        label: 'Reservations',
+        path:
+          '/receptionist/reservations',
+        icon: 'bi-calendar-check',
+      },
+      {
+        label: 'Check In / Out',
+        path:
+          '/receptionist/checkin',
+        icon: 'bi-box-arrow-in-right',
+      },
+      {
+        label: 'Guests',
+        path:
+          '/receptionist/guests',
+        icon: 'bi-people',
+      },
+    ],
+
+    housekeeping: [
+      {
+        label: 'Overview',
+        path:
+          '/housekeeping/dashboard',
+        icon: 'bi-grid',
+      },
+      {
+        label: 'Room Status',
+        path:
+          '/housekeeping/rooms',
+        icon: 'bi-door-open',
+      },
+      {
+        label: 'Cleaning Tasks',
+        path:
+          '/housekeeping/tasks',
+        icon: 'bi-check2-square',
+      },
+      {
+        label: 'Maintenance',
+        path:
+          '/housekeeping/maintenance',
+        icon: 'bi-tools',
+      },
+    ],
+
+    guest: [
+      {
+        label: 'Dashboard',
+        path: '/guest/dashboard',
+        icon: 'bi-grid',
+      },
+      {
+        label: 'My Reservations',
+        path:
+          '/guest/reservations',
+        icon: 'bi-calendar-check',
+      },
+      {
+        label: 'Guest Services',
+        path: '/guest/services',
+        icon: 'bi-bell',
+      },
+      {
+        label: 'Stay History',
+        path: '/guest/history',
+        icon: 'bi-clock-history',
+      },
+      {
+        label: 'My Profile',
+        path: '/guest/profile',
+        icon: 'bi-person',
+      },
+    ],
+  }
+
+  const roleNames = {
+    admin: 'Administrator',
+    manager: 'Hotel Manager',
+    receptionist: 'Receptionist',
+    housekeeping: 'Housekeeping',
+    guest: 'Guest',
+  }
+
+  const menuItems =
+    navigation[role] ||
+    navigation.guest
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
 
-  const guestLinks = [
-    {
-      name: 'Dashboard',
-      icon: 'bi-grid',
-      path: '/guest/dashboard',
-    },
-    {
-      name: 'My Reservations',
-      icon: 'bi-calendar-check',
-      path: '/guest/reservations',
-    },
-    {
-      name: 'Guest Services',
-      icon: 'bi-bell',
-      path: '/guest/services',
-    },
-    {
-      name: 'Stay History',
-      icon: 'bi-clock-history',
-      path: '/guest/history',
-    },
-    {
-      name: 'My Profile',
-      icon: 'bi-person',
-      path: '/guest/profile',
-    },
-  ]
-
-  const links =
-    user?.role === 'guest'
-      ? guestLinks
-      : []
+  const closeSidebar = () => {
+    setSidebarOpen(false)
+  }
 
   return (
-    <div className="dashboard-layout-user">
-
-      {sidebarOpen && (
-        <div
-          className="dashboard-overlay-user"
-          onClick={() =>
-            setSidebarOpen(false)
-          }
-        ></div>
-      )}
-
+    <div className="ls-dashboard-layout-user">
       <aside
-        className={`dashboard-sidebar-user ${
+        className={`ls-dashboard-sidebar-user ${
           sidebarOpen
-            ? 'dashboard-sidebar-open-user'
+            ? 'sidebar-open-user'
             : ''
         }`}
       >
-        <div className="dashboard-brand-user">
-          <div className="dashboard-brand-icon-user">
-            <i className="bi bi-buildings"></i>
-          </div>
+        <div className="ls-dashboard-brand-user">
+          <NavLink
+            to="/"
+            onClick={closeSidebar}
+          >
+            <div className="ls-dashboard-brand-mark-user">
+              LS
+            </div>
 
-          <div>
-            <strong>LuxuryStay</strong>
-            <span>Hospitality</span>
-          </div>
+            <div>
+              <strong>
+                LuxuryStay
+              </strong>
+
+              <span>
+                HOSPITALITY
+              </span>
+            </div>
+          </NavLink>
 
           <button
             type="button"
-            className="dashboard-close-user d-lg-none"
-            onClick={() =>
-              setSidebarOpen(false)
-            }
+            className="ls-dashboard-mobile-close-user"
+            onClick={closeSidebar}
+            aria-label="Close sidebar"
           >
             <i className="bi bi-x-lg"></i>
           </button>
         </div>
 
-        <div className="dashboard-user-mini-user">
-          <div className="dashboard-avatar-user">
-            {user?.firstName
-              ?.charAt(0)
-              .toUpperCase()}
+        <div className="ls-dashboard-user-card-user">
+          <div className="ls-dashboard-avatar-user">
+            {user?.firstName?.[0]
+              ?.toUpperCase() ||
+              'U'}
 
-            {user?.lastName
-              ?.charAt(0)
-              .toUpperCase()}
+            {user?.lastName?.[0]
+              ?.toUpperCase() ||
+              ''}
           </div>
 
           <div>
@@ -116,133 +251,151 @@ function DashboardLayout() {
             </strong>
 
             <span>
-              {user?.role}
+              {roleNames[role] ||
+                role}
             </span>
           </div>
         </div>
 
-        <div className="dashboard-menu-label-user">
-          MENU
+        <div className="ls-dashboard-menu-label-user">
+          <span>
+            MAIN MENU
+          </span>
         </div>
 
-        <nav className="dashboard-nav-user">
-          {links.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={
-                item.path ===
-                '/guest/dashboard'
-              }
-              onClick={() =>
-                setSidebarOpen(false)
-              }
-              className={({
-                isActive,
-              }) =>
-                `dashboard-nav-link-user ${
-                  isActive
-                    ? 'dashboard-nav-active-user'
-                    : ''
-                }`
-              }
-            >
-              <i
-                className={`bi ${item.icon}`}
-              ></i>
+        <nav className="ls-dashboard-nav-user">
+          {menuItems.map(
+            (item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={
+                  closeSidebar
+                }
+                className={({
+                  isActive,
+                }) =>
+                  `ls-dashboard-nav-link-user ${
+                    isActive
+                      ? 'active'
+                      : ''
+                  }`
+                }
+              >
+                <i
+                  className={`bi ${item.icon}`}
+                ></i>
 
-              <span>{item.name}</span>
-            </NavLink>
-          ))}
+                <span>
+                  {item.label}
+                </span>
+
+                <i className="bi bi-chevron-right ls-dashboard-nav-arrow-user"></i>
+              </NavLink>
+            )
+          )}
         </nav>
 
-        <div className="dashboard-sidebar-bottom-user">
-          <button
-            type="button"
-            onClick={() =>
-              navigate('/')
-            }
-            className="dashboard-bottom-link-user"
+        <div className="ls-dashboard-sidebar-bottom-user">
+          <NavLink
+            to="/"
+            className="ls-dashboard-hotel-link-user"
           >
-            <i className="bi bi-house"></i>
-            <span>Hotel Website</span>
-          </button>
+            <i className="bi bi-globe2"></i>
+
+            <span>
+              Hotel Website
+            </span>
+          </NavLink>
 
           <button
             type="button"
-            onClick={handleLogout}
-            className="dashboard-bottom-link-user dashboard-logout-user"
+            onClick={
+              handleLogout
+            }
+            className="ls-dashboard-logout-user"
           >
-            <i className="bi bi-box-arrow-right"></i>
-            <span>Sign Out</span>
+            <i className="bi bi-box-arrow-left"></i>
+
+            <span>
+              Sign Out
+            </span>
           </button>
         </div>
       </aside>
 
-      <div className="dashboard-main-user">
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="ls-dashboard-overlay-user"
+          onClick={closeSidebar}
+        ></button>
+      )}
 
-        <header className="dashboard-topbar-user">
-
-          <div className="dashboard-topbar-left-user">
+      <div className="ls-dashboard-main-user">
+        <header className="ls-dashboard-topbar-user">
+          <div className="ls-dashboard-topbar-left-user">
             <button
               type="button"
-              className="dashboard-menu-button-user d-lg-none"
+              className="ls-dashboard-menu-button-user"
               onClick={() =>
-                setSidebarOpen(true)
+                setSidebarOpen(
+                  true
+                )
               }
+              aria-label="Open sidebar"
             >
               <i className="bi bi-list"></i>
             </button>
 
             <div>
               <span>
-                LUXURYSTAY PORTAL
+                LUXURYSTAY
               </span>
 
               <strong>
-                Guest Account
+                {roleNames[role]}
+                {' '}Portal
               </strong>
             </div>
           </div>
 
-          <div className="dashboard-topbar-actions-user">
-
+          <div className="ls-dashboard-topbar-right-user">
             <button
               type="button"
-              className="dashboard-icon-button-user"
+              className="ls-dashboard-notification-user"
               aria-label="Notifications"
             >
               <i className="bi bi-bell"></i>
+
               <span></span>
             </button>
 
-            <div className="dashboard-topbar-profile-user">
-              <div className="dashboard-topbar-avatar-user">
-                {user?.firstName
-                  ?.charAt(0)
-                  .toUpperCase()}
+            <div className="ls-dashboard-topbar-profile-user">
+              <div>
+                {user?.firstName?.[0]
+                  ?.toUpperCase() ||
+                  'U'}
               </div>
 
-              <div className="d-none d-md-block">
+              <span>
                 <strong>
-                  {user?.firstName}{' '}
-                  {user?.lastName}
+                  {user?.firstName ||
+                    'User'}
                 </strong>
 
-                <span>
-                  {user?.email}
-                </span>
-              </div>
+                <small>
+                  {roleNames[role]}
+                </small>
+              </span>
             </div>
-
           </div>
-
         </header>
 
-        <main className="dashboard-content-user">
+        <main className="ls-dashboard-content-user">
           <Outlet />
         </main>
-
       </div>
     </div>
   )

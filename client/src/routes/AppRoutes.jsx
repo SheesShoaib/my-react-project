@@ -21,6 +21,14 @@ import Unauthorized from '../pages/Unauthorized'
 import GuestDashboard from '../pages/guest/GuestDashboard'
 import MyReservations from '../pages/guest/MyReservations'
 
+import AdminDashboard from '../pages/admin/AdminDashboard'
+
+import StaffManagement from '../pages/admin/StaffManagement'
+
+import StaffDashboard from '../pages/staff/StaffDashboard'
+
+import RoomManagement from '../pages/admin/RoomManagement'
+
 
 function AppRoutes() {
   return (
@@ -80,6 +88,116 @@ function AppRoutes() {
 
       </Route>
 
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={['admin']}
+          />
+        }
+      >
+        <Route
+          element={<DashboardLayout />}
+        >
+          <Route
+            path="/admin/dashboard"
+            element={<AdminDashboard />}
+          />
+
+          <Route
+            path="/admin/staff"
+            element={
+              <StaffManagement />
+            }
+          />
+          <Route
+            path="/admin/rooms"
+            element={<RoomManagement />}
+          />
+        </Route>
+      </Route>
+
+      {/* =========================
+    MANAGER
+========================= */}
+
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              'manager',
+            ]}
+          />
+        }
+      >
+        <Route
+          element={
+            <DashboardLayout />
+          }
+        >
+          <Route
+            path="/manager/dashboard"
+            element={
+              <StaffDashboard />
+            }
+          />
+        </Route>
+      </Route>
+
+
+      {/* =========================
+    RECEPTIONIST
+========================= */}
+
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              'receptionist',
+            ]}
+          />
+        }
+      >
+        <Route
+          element={
+            <DashboardLayout />
+          }
+        >
+          <Route
+            path="/receptionist/dashboard"
+            element={
+              <StaffDashboard />
+            }
+          />
+        </Route>
+      </Route>
+
+
+      {/* =========================
+    HOUSEKEEPING
+========================= */}
+
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              'housekeeping',
+            ]}
+          />
+        }
+      >
+        <Route
+          element={
+            <DashboardLayout />
+          }
+        >
+          <Route
+            path="/housekeeping/dashboard"
+            element={
+              <StaffDashboard />
+            }
+          />
+        </Route>
+      </Route>
 
       {/* =========================================
           UNAUTHORIZED

@@ -1,369 +1,286 @@
-import BookingForm from '../booking/BookingForm'
+import {
+  useEffect,
+} from 'react'
 
+import BookingForm
+  from '../booking/BookingForm'
 
 function RoomDetails({
   room,
-  bookingData = null,
+  bookingData,
   onClose,
 }) {
+  useEffect(() => {
+    document.body.style.overflow =
+      'hidden'
+
+    const handleEscape = (
+      event
+    ) => {
+      if (
+        event.key === 'Escape'
+      ) {
+        onClose()
+      }
+    }
+
+    window.addEventListener(
+      'keydown',
+      handleEscape
+    )
+
+    return () => {
+      document.body.style.overflow =
+        ''
+
+      window.removeEventListener(
+        'keydown',
+        handleEscape
+      )
+    }
+  }, [onClose])
 
   if (!room) {
     return null
   }
 
-
-  const handleBackdropClick = (event) => {
-
-    if (
-      event.target ===
-      event.currentTarget
-    ) {
-      onClose()
-    }
-  }
-
-
-  const handleCheckAvailability = () => {
-
-    onClose()
-
-    setTimeout(() => {
-
-      const bookingSection =
-        document.getElementById(
-          'booking'
-        )
-
-      if (bookingSection) {
-
-        bookingSection.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        })
-
-      }
-
-    }, 100)
-  }
-
-
   return (
     <div
-      className="room-modal-backdrop-user"
-      onClick={handleBackdropClick}
+      className="room-detail-backdrop-user"
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose()
+        }
+      }}
     >
-
-      <div className="room-modal-user">
-
-        {/* =========================
-            CLOSE BUTTON
-        ========================== */}
-
+      <div className="room-detail-modal-user">
         <button
           type="button"
-          className="room-modal-close-user"
+          className="room-detail-close-user"
           onClick={onClose}
-          aria-label="Close room details"
         >
           <i className="bi bi-x-lg"></i>
         </button>
 
+        <div className="room-detail-grid-user">
+          <div className="room-detail-visual-user">
+            <img
+              src={room.image}
+              alt={room.name}
+            />
 
-        <div className="row g-0">
+            <div className="room-detail-visual-overlay-user"></div>
 
+            <div className="room-detail-visual-top-user">
+              <span>
+                {room.type}
+              </span>
 
-          {/* =========================
-              ROOM IMAGE
-          ========================== */}
-
-          <div className="col-lg-6">
-
-            <div className="room-modal-image-user">
-
-              <img
-                src={room.image}
-                alt={room.name}
-              />
-
-
-              <div className="room-modal-image-overlay-user"></div>
-
-
-              <div className="room-modal-image-content-user">
-
-                <span>
-                  {room.type}
-                </span>
-
-                <h2>
-                  {room.name}
-                </h2>
-
-                {room.roomNumber && (
-                  <p>
-                    Room {room.roomNumber}
-                  </p>
-                )}
-
-              </div>
-
+              <span>
+                ROOM{' '}
+                {room.roomNumber}
+              </span>
             </div>
 
+            <div className="room-detail-visual-bottom-user">
+              <span>
+                LUXURYSTAY
+              </span>
+
+              <h2>
+                {room.name}
+              </h2>
+
+              <p>
+                Refined comfort.
+                Exceptional hospitality.
+              </p>
+            </div>
           </div>
 
+          <div className="room-detail-content-user">
+            <div className="room-detail-heading-user">
+              <span>
+                YOUR PRIVATE RETREAT
+              </span>
 
-          {/* =========================
-              ROOM INFORMATION
-          ========================== */}
+              <h2>
+                {room.name}
+              </h2>
 
-          <div className="col-lg-6">
+              <p>
+                {room.description}
+              </p>
+            </div>
 
-            <div className="room-modal-content-user">
-
-
-              {/* HEADING */}
-
-              <div className="room-modal-heading-user">
+            <div className="room-detail-info-grid-user">
+              <div>
+                <i className="bi bi-people"></i>
 
                 <span>
-                  LUXURY ACCOMMODATION
+                  CAPACITY
                 </span>
 
-                <h2>
-                  {room.name}
-                </h2>
-
-                <p>
-                  {room.description}
-                </p>
-
+                <strong>
+                  {room.capacity}{' '}
+                  Guests
+                </strong>
               </div>
 
+              <div>
+                <i className="bi bi-moon"></i>
 
-              {/* ROOM INFORMATION */}
+                <span>
+                  BED
+                </span>
 
-              <div className="room-modal-features-user">
-
-                <div>
-
-                  <i className="bi bi-people"></i>
-
-                  <div>
-                    <span>
-                      Guests
-                    </span>
-
-                    <strong>
-                      Up to{' '}
-                      {room.capacity ||
-                        room.guests ||
-                        1}
-                    </strong>
-                  </div>
-
-                </div>
-
-
-                <div>
-
-                  <i className="bi bi-moon"></i>
-
-                  <div>
-                    <span>
-                      Beds
-                    </span>
-
-                    <strong>
-                      {room.beds ||
-                        'Premium Bed'}
-                    </strong>
-                  </div>
-
-                </div>
-
-
-                <div>
-
-                  <i className="bi bi-arrows-fullscreen"></i>
-
-                  <div>
-                    <span>
-                      Room Size
-                    </span>
-
-                    <strong>
-                      {room.size ||
-                        'Spacious'}
-                    </strong>
-                  </div>
-
-                </div>
-
-
-                <div>
-
-                  <i className="bi bi-door-open"></i>
-
-                  <div>
-                    <span>
-                      Room
-                    </span>
-
-                    <strong>
-                      {room.roomNumber ||
-                        'Luxury Room'}
-                    </strong>
-                  </div>
-
-                </div>
-
+                <strong>
+                  {room.beds}
+                </strong>
               </div>
 
+              <div>
+                <i className="bi bi-arrows-fullscreen"></i>
 
-              {/* AMENITIES */}
+                <span>
+                  SIZE
+                </span>
 
-              {room.amenities &&
-                room.amenities.length >
-                  0 && (
+                <strong>
+                  {room.size ||
+                    'Spacious'}
+                </strong>
+              </div>
 
-                  <div className="room-modal-amenities-user">
+              <div>
+                <i className="bi bi-door-open"></i>
 
-                    <span className="room-modal-section-label-user">
-                      ROOM AMENITIES
-                    </span>
+                <span>
+                  ROOM
+                </span>
 
-                    <div className="room-amenities-grid-user">
+                <strong>
+                  #{room.roomNumber}
+                </strong>
+              </div>
+            </div>
 
-                      {room.amenities.map(
-                        (
-                          amenity,
-                          index
-                        ) => (
-
-                          <div
-                            key={`${amenity}-${index}`}
-                          >
-
-                            <i className="bi bi-check-circle"></i>
-
-                            <span>
-                              {amenity}
-                            </span>
-
-                          </div>
-
-                        )
-                      )}
-
-                    </div>
-
-                  </div>
-
-                )}
-
-
-              {/* PRICE */}
-
-              <div className="room-modal-price-user">
-
-                <div>
-
-                  <span>
-                    PRICE PER NIGHT
+            {room.amenities?.length >
+              0 && (
+                <div className="room-detail-amenities-user">
+                  <span className="room-detail-label-user">
+                    AMENITIES
                   </span>
 
-                  <strong>
-                    PKR{' '}
-                    {Number(
-                      room.price || 0
-                    ).toLocaleString()}
-                  </strong>
+                  <div className="room-detail-amenities-grid-user">
+                    {room.amenities.map(
+                      (
+                        amenity,
+                        index
+                      ) => (
+                        <div
+                          key={`${amenity}-${index}`}
+                        >
+                          <i className="bi bi-check2"></i>
 
-                </div>
-
-                <small>
-                  Taxes and additional
-                  services may apply.
-                </small>
-
-              </div>
-
-
-              {/* =========================
-                  BOOKING AREA
-              ========================== */}
-
-              {bookingData?.checkIn &&
-              bookingData?.checkOut ? (
-
-                <div className="room-modal-booking-user">
-
-                  <div className="room-modal-divider-user"></div>
-
-                  <div className="room-modal-booking-heading-user">
-
-                    <span>
-                      YOUR RESERVATION
-                    </span>
-
-                    <h3>
-                      Complete Your Booking
-                    </h3>
-
-                    <p>
-                      Review your stay details
-                      and confirm your
-                      reservation.
-                    </p>
-
+                          <span>
+                            {amenity}
+                          </span>
+                        </div>
+                      )
+                    )}
                   </div>
-
-
-                  <BookingForm
-                    room={room}
-                    bookingData={
-                      bookingData
-                    }
-                    onClose={onClose}
-                  />
-
                 </div>
-
-              ) : (
-
-                <div className="room-modal-action-user">
-
-                  <button
-                    type="button"
-                    className="btn btn-luxury w-100"
-                    onClick={
-                      handleCheckAvailability
-                    }
-                  >
-                    <i className="bi bi-calendar-check me-2"></i>
-
-                    Check Availability
-                  </button>
-
-
-                  <small>
-                    Select your check-in and
-                    check-out dates to confirm
-                    availability.
-                  </small>
-
-                </div>
-
               )}
 
+            <div className="room-detail-price-user">
+              <div>
+                <span>
+                  RATE PER NIGHT
+                </span>
+
+                <strong>
+                  PKR{' '}
+                  {Number(
+                    room.price
+                  ).toLocaleString()}
+                </strong>
+              </div>
+
+              <small>
+                Taxes and additional
+                services may apply
+              </small>
             </div>
 
+            {bookingData?.checkIn &&
+              bookingData?.checkOut ? (
+              <div className="room-detail-reservation-user">
+                <div className="room-detail-reservation-title-user">
+                  <span>
+                    RESERVATION
+                  </span>
+
+                  <h3>
+                    Complete Your Stay
+                  </h3>
+                </div>
+
+                <BookingForm
+                  room={room}
+                  bookingData={bookingData}
+                  onClose={onClose}
+                />
+              </div>
+            ) : (
+              <div className="room-detail-availability-action-user">
+                <div>
+                  <span>
+                    READY TO RESERVE?
+                  </span>
+
+                  <h3>
+                    Check Room Availability
+                  </h3>
+
+                  <p>
+                    Select your stay dates and
+                    number of guests to continue
+                    with your reservation.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose()
+
+                    setTimeout(() => {
+                      document
+                        .getElementById(
+                          'booking'
+                        )
+                        ?.scrollIntoView({
+                          behavior:
+                            'smooth',
+                          block:
+                            'start',
+                        })
+                    }, 100)
+                  }}
+                >
+                  Check Availability
+
+                  <i className="bi bi-arrow-right"></i>
+                </button>
+              </div>
+            )}
           </div>
-
         </div>
-
       </div>
-
     </div>
   )
 }

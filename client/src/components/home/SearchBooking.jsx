@@ -6,8 +6,8 @@ import {
   checkRoomAvailability,
 } from '../../services/roomService'
 
-import RoomDetails from '../rooms/RoomDetails'
-
+import RoomDetails
+  from '../rooms/RoomDetails'
 
 function SearchBooking() {
   const [formData, setFormData] =
@@ -17,8 +17,15 @@ function SearchBooking() {
       guests: '1',
     })
 
-  const [availableRooms, setAvailableRooms] =
-    useState([])
+  const [
+    availableRooms,
+    setAvailableRooms,
+  ] = useState([])
+
+  const [
+    selectedRoom,
+    setSelectedRoom,
+  ] = useState(null)
 
   const [searched, setSearched] =
     useState(false)
@@ -29,21 +36,14 @@ function SearchBooking() {
   const [error, setError] =
     useState('')
 
-  const [selectedRoom, setSelectedRoom] =
-    useState(null)
-
-
   const today =
     new Date()
       .toISOString()
       .split('T')[0]
 
-
   const handleChange = (event) => {
-    const {
-      name,
-      value,
-    } = event.target
+    const { name, value } =
+      event.target
 
     setFormData((previous) => ({
       ...previous,
@@ -53,15 +53,10 @@ function SearchBooking() {
     setError('')
   }
 
-
   const handleSearch = async (
     event
   ) => {
     event.preventDefault()
-
-    setError('')
-    setSearched(false)
-    setAvailableRooms([])
 
     const {
       checkIn,
@@ -69,32 +64,27 @@ function SearchBooking() {
       guests,
     } = formData
 
-
-    if (
-      !checkIn ||
-      !checkOut ||
-      !guests
-    ) {
+    if (!checkIn || !checkOut) {
       setError(
-        'Please complete all booking fields.'
+        'Please select your check-in and check-out dates.'
       )
       return
     }
-
 
     if (
       new Date(checkOut) <=
       new Date(checkIn)
     ) {
       setError(
-        'Check-out must be after check-in.'
+        'Check-out date must be after check-in date.'
       )
       return
     }
 
-
     try {
       setLoading(true)
+      setError('')
+      setSearched(false)
 
       const data =
         await checkRoomAvailability({
@@ -104,11 +94,12 @@ function SearchBooking() {
         })
 
       setAvailableRooms(
-        data.rooms
+        Array.isArray(data.rooms)
+          ? data.rooms
+          : []
       )
 
       setSearched(true)
-
     } catch (error) {
       setError(error.message)
     } finally {
@@ -116,41 +107,42 @@ function SearchBooking() {
     }
   }
 
-
   return (
     <section
-      className="booking-search-user"
+      className="availability-section-user"
       id="booking"
     >
       <div className="container">
-
-        <div className="booking-search-box-user">
-
-          <div className="booking-search-heading-user">
+        <div className="availability-search-panel-user">
+          <div className="availability-search-intro-user">
             <span>
-              RESERVATIONS
+              RESERVE YOUR STAY
             </span>
 
             <h2>
-              Find Your Perfect Stay
+              Find Your Perfect Room
             </h2>
-          </div>
 
+            <p>
+              Discover rooms available
+              for your selected dates.
+            </p>
+          </div>
 
           <form
             onSubmit={handleSearch}
+            className="availability-search-form-user"
           >
-            <div className="row g-3 align-items-end">
+            <div className="availability-search-field-user">
+              <label>
+                CHECK IN
+              </label>
 
-              <div className="col-md-3">
-
-                <label>
-                  Check In
-                </label>
+              <div>
+                <i className="bi bi-calendar3"></i>
 
                 <input
                   type="date"
-                  className="form-control"
                   name="checkIn"
                   min={today}
                   value={
@@ -160,19 +152,19 @@ function SearchBooking() {
                     handleChange
                   }
                 />
-
               </div>
+            </div>
 
+            <div className="availability-search-field-user">
+              <label>
+                CHECK OUT
+              </label>
 
-              <div className="col-md-3">
-
-                <label>
-                  Check Out
-                </label>
+              <div>
+                <i className="bi bi-calendar3"></i>
 
                 <input
                   type="date"
-                  className="form-control"
                   name="checkOut"
                   min={
                     formData.checkIn ||
@@ -185,18 +177,18 @@ function SearchBooking() {
                     handleChange
                   }
                 />
-
               </div>
+            </div>
 
+            <div className="availability-search-field-user">
+              <label>
+                GUESTS
+              </label>
 
-              <div className="col-md-3">
-
-                <label>
-                  Guests
-                </label>
+              <div>
+                <i className="bi bi-people"></i>
 
                 <select
-                  className="form-select"
                   name="guests"
                   value={
                     formData.guests
@@ -221,75 +213,71 @@ function SearchBooking() {
                     4 Guests
                   </option>
                 </select>
-
               </div>
-
-
-              <div className="col-md-3">
-
-                <button
-                  type="submit"
-                  className="btn btn-luxury w-100"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                      Checking...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-search me-2"></i>
-                      Check Availability
-                    </>
-                  )}
-                </button>
-
-              </div>
-
             </div>
+
+            <button
+              type="submit"
+              className="availability-search-button-user"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm"></span>
+                  Checking
+                </>
+              ) : (
+                <>
+                  Check Availability
+                  <i className="bi bi-arrow-right"></i>
+                </>
+              )}
+            </button>
           </form>
 
-
           {error && (
-            <div className="auth-alert-user mt-4">
+            <div className="availability-error-user">
               <i className="bi bi-exclamation-circle"></i>
-              <span>{error}</span>
+              {error}
             </div>
           )}
-
         </div>
-
 
         {searched && (
           <div className="availability-results-user">
+            <header className="availability-results-header-user">
+              <div>
+                <span>
+                  AVAILABLE ROOMS
+                </span>
 
-            <div className="section-heading-user text-center">
-              <span>
-                SEARCH RESULTS
-              </span>
+                <h2>
+                  Choose Your Stay
+                </h2>
+              </div>
 
-              <h2>
-                Available Rooms
-              </h2>
+              <div className="availability-result-count-user">
+                <strong>
+                  {
+                    availableRooms.length
+                  }
+                </strong>
 
-              <p>
-                {availableRooms.length}{' '}
-                room
-                {availableRooms.length !== 1
-                  ? 's'
-                  : ''}{' '}
-                available for your
-                selected dates.
-              </p>
-            </div>
-
+                <span>
+                  {availableRooms.length ===
+                  1
+                    ? 'ROOM FOUND'
+                    : 'ROOMS FOUND'}
+                </span>
+              </div>
+            </header>
 
             {availableRooms.length ===
             0 ? (
-
-              <div className="guest-empty-user">
-                <i className="bi bi-calendar2-x"></i>
+              <div className="availability-empty-user">
+                <div>
+                  <i className="bi bi-calendar2-x"></i>
+                </div>
 
                 <h3>
                   No rooms available
@@ -297,27 +285,20 @@ function SearchBooking() {
 
                 <p>
                   Try different dates or
-                  reduce the number of
+                  reduce your number of
                   guests.
                 </p>
               </div>
-
             ) : (
-
               <div className="row g-4">
-
                 {availableRooms.map(
                   (room) => (
-
                     <div
-                      className="col-lg-4"
+                      className="col-xl-4 col-md-6"
                       key={room._id}
                     >
-
-                      <article className="room-card-user h-100">
-
-                        <div className="room-image-user">
-
+                      <article className="available-room-card-user">
+                        <div className="available-room-media-user">
                           <img
                             src={
                               room.image
@@ -327,82 +308,116 @@ function SearchBooking() {
                             }
                           />
 
-                          <span className="room-type-user">
+                          <div className="available-room-overlay-user"></div>
+
+                          <span className="available-room-type-user">
                             {room.type}
                           </span>
 
+                          <span className="available-room-status-user">
+                            <i className="bi bi-circle-fill"></i>
+                            Available
+                          </span>
                         </div>
 
+                        <div className="available-room-content-user">
+                          <div className="available-room-top-user">
+                            <span>
+                              ROOM{' '}
+                              {
+                                room.roomNumber
+                              }
+                            </span>
 
-                        <div className="room-card-body-user">
+                            <div>
+                              <strong>
+                                PKR{' '}
+                                {Number(
+                                  room.price
+                                ).toLocaleString()}
+                              </strong>
+
+                              <small>
+                                / night
+                              </small>
+                            </div>
+                          </div>
 
                           <h3>
                             {room.name}
                           </h3>
 
                           <p>
-                            Room{' '}
-                            {room.roomNumber}
+                            {
+                              room.description
+                            }
                           </p>
 
-                          <div className="room-price-user mb-3">
+                          <div className="available-room-meta-user">
+                            <div>
+                              <i className="bi bi-people"></i>
 
-                            <strong>
-                              PKR{' '}
-                              {room.price.toLocaleString()}
-                            </strong>
+                              <span>
+                                {
+                                  room.capacity
+                                }{' '}
+                                Guests
+                              </span>
+                            </div>
 
-                            <span>
-                              {' '}
-                              / night
-                            </span>
+                            <div>
+                              <i className="bi bi-moon"></i>
 
+                              <span>
+                                {room.beds}
+                              </span>
+                            </div>
+
+                            {room.size && (
+                              <div>
+                                <i className="bi bi-arrows-fullscreen"></i>
+
+                                <span>
+                                  {
+                                    room.size
+                                  }
+                                </span>
+                              </div>
+                            )}
                           </div>
-
 
                           <button
                             type="button"
-                            className="btn btn-luxury w-100"
+                            className="available-room-button-user"
                             onClick={() =>
                               setSelectedRoom(
                                 room
                               )
                             }
                           >
-                            Select Room
+                            View & Book
+                            <i className="bi bi-arrow-up-right"></i>
                           </button>
-
                         </div>
-
                       </article>
-
                     </div>
-
                   )
                 )}
-
               </div>
-
             )}
-
           </div>
         )}
-
       </div>
-
 
       {selectedRoom && (
         <RoomDetails
           room={selectedRoom}
-          bookingData={
-            formData
-          }
+          bookingData={formData}
           onClose={() =>
             setSelectedRoom(null)
           }
         />
       )}
-
     </section>
   )
 }
